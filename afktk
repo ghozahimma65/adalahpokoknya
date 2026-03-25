@@ -1,109 +1,49 @@
 -- =============================================================
--- BOT TEBAK KATA (V29 NOKIA 3310 - KHUSUS TUMBAL)
--- Feature: UI Super Purba Anti-BlackBox + Auto-Sit Badak!
+-- BOT TUMBAL AFK (V30 SILUMAN DEWA - DELTA 100% PROOF)
+-- TANPA UI, TANPA VIRTUALUSER. MURNI AUTO-SIT!
 -- =============================================================
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Bersihkan versi sebelumnya kalau ada
-if _G.TumbalNokia then 
-    pcall(function() _G.TumbalNokia:Destroy() end)
-end
-
--- ==========================================
--- 🛡️ ANTI-AFK
--- ==========================================
-local vu = game:GetService("VirtualUser")
-LocalPlayer.Idled:Connect(function()
-    pcall(function()
-        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    end)
+-- Bikin layar kedip MERAH bentar biar kamu tahu scriptnya sukses masuk!
+pcall(function()
+    local flash = Instance.new("ColorCorrectionEffect")
+    flash.TintColor = Color3.fromRGB(255, 50, 50)
+    flash.Parent = game:GetService("Lighting")
+    task.wait(0.3)
+    flash:Destroy()
 end)
 
--- ==========================================
--- 🎨 UI PURBA (DIJAMIN 1000% MUNCUL DI DELTA)
--- ==========================================
-local sg = Instance.new("ScreenGui")
-sg.Name = "TumbalNokia"
-sg.ResetOnSpawn = false
--- Taruh langsung di PlayerGui biar aman dari blokir Delta
-sg.Parent = LocalPlayer:WaitForChild("PlayerGui")
-_G.TumbalNokia = sg
-
--- Bikin Tombol Kotak Polos (Tanpa efek macem-macem)
-local btn = Instance.new("TextButton", sg)
-btn.Size = UDim2.new(0, 200, 0, 50)
-btn.Position = UDim2.new(0.5, -100, 0, 20) -- Posisi di tengah atas
-btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Warna Merah
-btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-btn.Font = Enum.Font.SourceSansBold
-btn.TextSize = 20
-btn.Text = "TUMBAL AFK: MATI"
-
--- Bikin bisa digeser (Drag)
-local dragging, dragStart, startPos
-btn.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-        dragging = true dragStart = i.Position startPos = btn.Position
-    end
-end)
-game:GetService("UserInputService").InputChanged:Connect(function(i)
-    if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-        btn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + (i.Position - dragStart).X, startPos.Y.Scale, startPos.Y.Offset + (i.Position - dragStart).Y)
-    end
-end)
-btn.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end
-end)
-
--- ==========================================
--- 🪑 MESIN AUTO-SIT BADAK
--- ==========================================
-local isAFK = false
-
-btn.MouseButton1Click:Connect(function()
-    isAFK = not isAFK
-    if isAFK then
-        btn.Text = "TUMBAL AFK: NYALA!"
-        btn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) -- Berubah Ijo
-    else
-        btn.Text = "TUMBAL AFK: MATI"
-        btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Balik Merah
-    end
-end)
-
+-- Mesin Kesedot Kursi
 task.spawn(function()
-    while task.wait(1) do -- Cek tiap 1 detik
-        if isAFK then
-            pcall(function()
-                local char = LocalPlayer.Character
-                local hum = char and char:FindFirstChild("Humanoid")
-                local root = char and char:FindFirstChild("HumanoidRootPart")
+    while task.wait(2) do -- Dicek setiap 2 detik pelan-pelan biar emulator ga berat
+        pcall(function()
+            local char = LocalPlayer.Character
+            local hum = char and char:FindFirstChild("Humanoid")
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            
+            -- Kalau karakter ada, dan lagi BERDIRI (nggak duduk)
+            if hum and hrp and not hum.Sit then
+                local targetSeat = nil
+                local closestDist = 50 -- Cari kursi kosong terdekat dalam 50 meter
                 
-                -- Kalau berdiri, langsung eksekusi
-                if hum and root and not hum.Sit then
-                    local closestSeat = nil
-                    local minDist = 50 -- Radius 50 meter
-                    
-                    for _, obj in ipairs(workspace:GetDescendants()) do
-                        if obj:IsA("Seat") and not obj.Occupant then
-                            local dist = (root.Position - obj.Position).Magnitude
-                            if dist < minDist then
-                                minDist = dist
-                                closestSeat = obj
-                            end
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("Seat") and not obj.Occupant then
+                        local dist = (hrp.Position - obj.Position).Magnitude
+                        if dist < closestDist then
+                            closestDist = dist
+                            targetSeat = obj
                         end
                     end
-                    
-                    -- Teleport persis ke atas kursi
-                    if closestSeat then
-                        root.CFrame = closestSeat.CFrame * CFrame.new(0, 2, 0)
-                    end
                 end
-            end)
-        end
+                
+                -- Kalau ada kursi kosong terdekat, JATUHKAN pantatnya dari atas!
+                if targetSeat then
+                    -- Posisi kursi + 2 meter ke atas biar jatuh alami dan otomatis duduk
+                    hrp.CFrame = targetSeat.CFrame + Vector3.new(0, 2, 0)
+                end
+            end
+        end)
     end
 end)
